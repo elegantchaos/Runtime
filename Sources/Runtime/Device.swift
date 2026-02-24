@@ -6,9 +6,6 @@ import Foundation
 
 /// Snapshot of runtime host and device metadata.
 public struct Device: Sendable {
-  /// Singleton convenience for the current process context.
-  public static let main = Device()
-
   /// Host name reported by the process environment.
   public let hostName: String
 

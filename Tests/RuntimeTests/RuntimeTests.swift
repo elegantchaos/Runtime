@@ -13,9 +13,9 @@ func platformCurrentVariantIsKnown() {
   #expect(variant == .normal || variant == .simulator || variant == .catalyst)
 }
 
-@Test("Runtime current aligns app and platform snapshots")
-func runtimeCurrentCoherent() {
-  let runtime = Runtime.current
+@Test("Runtime snapshot aligns app and platform snapshots")
+func runtimeSnapshotCoherent() {
+  let runtime = Runtime()
   #expect(!runtime.app.version.isEmpty)
   #expect(runtime.platform == runtime.device.platform)
 }

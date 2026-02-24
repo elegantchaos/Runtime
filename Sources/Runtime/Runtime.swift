@@ -3,7 +3,7 @@ import Foundation
 /// Combined runtime snapshot for app, device, and environment metadata.
 ///
 /// Prefer `AppInfo`, `Device`, and `Platform` directly when only one facet is
-/// needed. Use `Runtime.current` when a single aggregate value is convenient.
+/// needed.
 public struct Runtime: Sendable {
   /// Application metadata.
   public let app: AppInfo
@@ -27,7 +27,4 @@ public struct Runtime: Sendable {
     self.platform = .current
     self.environment = processInfo.environment
   }
-
-  /// Convenience shared snapshot for common call sites.
-  public static let current = Runtime()
 }
