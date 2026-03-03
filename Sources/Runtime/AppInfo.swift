@@ -41,6 +41,9 @@ public struct AppInfo: Sendable {
   /// Whether this looks like a TestFlight build.
   public let isTestFlightBuild: Bool
 
+  /// Whether this looks like it is a UI Test build
+  public let isUITestingBuild: Bool
+
   /// Creates app metadata for a specific bundle.
   /// - Parameters:
   ///   - bundle: Bundle to inspect.
@@ -53,7 +56,8 @@ public struct AppInfo: Sendable {
 
     self.identifier = bundle.bundleIdentifier ?? "?"
 
-    self.name = (rawInfo["CFBundleDisplayName"] as? String)
+    self.name =
+      (rawInfo["CFBundleDisplayName"] as? String)
       ?? (rawInfo["CFBundleName"] as? String)
       ?? "?"
 
@@ -61,13 +65,15 @@ public struct AppInfo: Sendable {
 
     self.version = (rawInfo["CFBundleShortVersionString"] as? String) ?? "?"
 
-    let rawBuild = (rawInfo["CFBundleVersion"] as? String)
+    let rawBuild =
+      (rawInfo["CFBundleVersion"] as? String)
       ?? (rawInfo["Build"] as? String)
       ?? "0"
     self.build = rawBuild == "BUILD" ? "xcode" : rawBuild
 
     self.isInternalBuild = identifier.hasSuffix(".internal")
     self.isPreviewing = processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    self.isUITestingBuild = processInfo.environment["UITesting"] == "YES"
 
     #if targetEnvironment(simulator)
       self.isSimulatorBuild = true
