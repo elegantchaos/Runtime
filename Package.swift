@@ -20,7 +20,10 @@ let package = Package(
         ),
         .testTarget(
             name: "RuntimeTests",
-            dependencies: ["Runtime"]
+            dependencies: ["Runtime"],
+            resources: [
+                .copy("Resources/Fixture.bundle")
+            ]
         ),
     ]
 )

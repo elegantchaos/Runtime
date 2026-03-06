@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Build</key>
+  <string>456</string>
+  <key>CFBundleDisplayName</key>
+  <string>Runtime Test Display</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.example.runtime.fixture.internal</string>
+  <key>CFBundleName</key>
+  <string>Runtime Test Name</string>
+  <key>CFBundleExecutable</key>
+  <string>RuntimeTestExecutable</string>
+  <key>CFBundleShortVersionString</key>
+  <string>9.8.7</string>
+  <key>CFBundleSpokenName</key>
+  <string>Runtime Spoken</string>
+  <key>CFBundleURLName</key>
+  <string>com.example.runtime.tests.url</string>
+  <key>CFBundleVersion</key>
+  <string>123</string>
+  <key>NSPrincipalClass</key>
+  <string>RuntimePrincipalClass</string>
+</dict>
+</plist>

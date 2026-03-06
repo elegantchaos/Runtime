@@ -21,6 +21,27 @@ metadata and environment lookups.
 
 ## Usage
 
+Direct properties are defined on `Runtime` for access to commonly
+used information:
+
+```swift
+import Runtime
+
+let runtime = Runtime()
+
+// Prefer direct properties for common runtime metadata.
+let appVersion = runtime.bundle.version
+let build = runtime.bundle.build
+let isDebug = runtime.isDebugBuild
+let isPreview = runtime.isPreviewing
+let platform = runtime.platform
+let host = runtime.hostName
+let osVersion = runtime.systemVersion
+```
+
+You can also read arbitrary keys from the bundle's info dictionary,
+and the process environment dictionary:
+
 ```swift
 import Runtime
 
@@ -28,15 +49,6 @@ let runtime = Runtime()
 
 let path = runtime.environment(.path)
 let shell = runtime.environment("SHELL")
-
 let bundleVersion = runtime.info(.bundleVersion)
 let displayName = runtime.info(.displayName)
-```
-
-## Validation
-
-Run tests with:
-
-```bash
-swift test
 ```
