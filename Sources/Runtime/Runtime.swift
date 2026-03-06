@@ -8,10 +8,14 @@ import Foundation
 ///
 /// Includes values harvested from the process info, bundle info, build environment, and
 /// host operating system.
+@dynamicMemberLookup
 public struct Runtime: Sendable {
   /// Bundle metadata.
-  public let info: BundleInfo
+  public let bundle: BundleInfo
 
+  /// Process metadata.
+  public let process: ProcessInfo
+  
   /// Host name reported by the process environment.
   public let hostName: String
 
@@ -46,11 +50,49 @@ public struct Runtime: Sendable {
   public let isTestFlightBuild: Bool
 
   /// Environment variables captured at initialization.
-  public let variables: [String: String]
+  private let environment: [String: String]
 
   /// Returns true when this is a production App Store style build.
   public var isAppStoreRelease: Bool {
     !isDebugBuild && !isSimulatorBuild && !isTestFlightBuild
+  }
+
+  /// Returns an environment variable by dynamic member name.
+  ///
+  /// This allows `runtime.PATH` style access as a shorthand for
+  /// `runtime.environment("PATH")`.
+  /// - Parameter member: Environment variable key.
+  /// - Returns: Variable value if present, otherwise `nil`.
+  public subscript(dynamicMember member: String) -> String? {
+    environment[member]
+  }
+
+  /// Returns an environment variable value for a known key.
+  /// - Parameter key: The environment key to look up.
+  /// - Returns: Variable value if present, otherwise `nil`.
+  public func environment(_ key: EnvironmentKey) -> String? {
+    environment[key.rawValue]
+  }
+
+  /// Returns an environment variable value for an arbitrary key.
+  /// - Parameter key: The environment key to look up.
+  /// - Returns: Variable value if present, otherwise `nil`.
+  public func environment(_ key: String) -> String? {
+    environment[key]
+  }
+
+  /// Returns a bundle info value for a known key.
+  /// - Parameter key: The bundle key to look up.
+  /// - Returns: Bundle info value if present, otherwise `nil`.
+  public func info(_ key: BundleKey) -> String? {
+    bundle.info[key.rawValue]
+  }
+
+  /// Returns a bundle info value for an arbitrary key.
+  /// - Parameter key: The bundle key to look up.
+  /// - Returns: Bundle info value if present, otherwise `nil`.
+  public func info(_ key: String) -> String? {
+    bundle.info[key]
   }
 
   /// Creates an aggregate runtime snapshot.
@@ -58,23 +100,25 @@ public struct Runtime: Sendable {
   ///   - bundle: Bundle to inspect.
   ///   - processInfo: Process info source.
   public init(bundle: Bundle = .main, processInfo: ProcessInfo = .processInfo) {
-    self.info = BundleInfo(bundle: bundle)
+    self.bundle = BundleInfo(bundle: bundle)
+    self.process = processInfo
     self.hostName = processInfo.hostName
+    self.environment = processInfo.environment
     self.platform = .current
 
     #if canImport(UIKit)
       let current = UIDevice.current
       self.systemName = current.systemName
       self.systemVersion = current.systemVersion
-      self.identifier = current.identifierForVendor?.uuidString
+      self.deviceIdentifier = current.identifierForVendor?.uuidString
     #else
       self.systemName = processInfo.operatingSystemVersionString
       self.systemVersion = processInfo.operatingSystemVersionString
       self.deviceIdentifier = nil
     #endif
 
-    self.isPreviewing = processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-    self.isUITestingBuild = processInfo.environment["UITesting"] == "YES"
+    self.isPreviewing = environment[EnvironmentKey.xcodeRunningForPreviews.rawValue] == "1"
+    self.isUITestingBuild = environment[EnvironmentKey.uiTesting.rawValue] == "YES"
 
     #if targetEnvironment(simulator)
       self.isSimulatorBuild = true
@@ -88,8 +132,7 @@ public struct Runtime: Sendable {
       self.isDebugBuild = false
     #endif
 
-    self.isInternalBuild = self.info.identifier.hasSuffix(".internal")
+    self.isInternalBuild = self.bundle.identifier.hasSuffix(".internal")
     self.isTestFlightBuild = bundle.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
-    self.variables = processInfo.environment
   }
 }

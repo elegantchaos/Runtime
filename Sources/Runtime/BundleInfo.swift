@@ -33,11 +33,11 @@ public struct BundleInfo: Sendable {
     let info = bundle.infoDictionary?.mapValues({ String(describing:$0) }) ?? [:]
 
     self.info = info
-    self.identifier = bundle.bundleIdentifier ?? "?"
-    self.name = info[.bundleDisplayNameKey] ?? info[.bundleNameKey] ?? "?"
-    self.executable = info[.bundleExecutableKey] ?? ""
-    self.version = info[.bundleShortVersionStringKey] ?? "?"
-    let rawBuild = info[.bundleVersionKey] ?? info[.buildKey] ?? "0"
+    self.identifier = bundle.bundleIdentifier ?? ""
+    self.name = info[BundleKey.displayName.rawValue] ?? info[BundleKey.bundleName.rawValue] ?? ""
+    self.executable = info[BundleKey.executableName.rawValue] ?? ""
+    self.version = info[BundleKey.shortVersionString.rawValue] ?? ""
+    let rawBuild = info[BundleKey.bundleVersion.rawValue] ?? info[BundleKey.build.rawValue] ?? "0"
     self.build = rawBuild == "BUILD" ? "xcode" : rawBuild
     let isInternalBuild = identifier.hasSuffix(".internal")
     self.fullVersion = Self.formatFullVersion(version: version, build: build, internalBuild: isInternalBuild)
