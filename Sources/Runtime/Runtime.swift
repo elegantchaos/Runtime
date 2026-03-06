@@ -4,16 +4,16 @@ import Foundation
   import UIKit
 #endif
 
-/// Unified snapshot of the runtime environment.
+/// Unified runtime metadata snapshot for process, bundle, platform, and host details.
 ///
-/// Includes values harvested from the process info, bundle info, build environment, and
-/// host operating system.
+/// `Runtime` captures values once at initialization time so downstream code can
+/// pass a stable value object instead of reading process globals repeatedly.
 @dynamicMemberLookup
 public struct Runtime: Sendable {
   /// Bundle metadata.
   public let bundle: BundleInfo
 
-  /// Process metadata.
+  /// Process metadata used to populate environment and host fields.
   public let process: ProcessInfo
   
   /// Host name reported by the process environment.
@@ -50,6 +50,9 @@ public struct Runtime: Sendable {
   public let isTestFlightBuild: Bool
 
   /// Environment variables captured at initialization.
+  ///
+  /// This dictionary is private to keep key usage explicit via `EnvironmentKey`
+  /// or the `environment(_:)` helpers.
   private let environment: [String: String]
 
   /// Returns true when this is a production App Store style build.
@@ -132,7 +135,7 @@ public struct Runtime: Sendable {
       self.isDebugBuild = false
     #endif
 
-    self.isInternalBuild = self.bundle.identifier.hasSuffix(".internal")
+    self.isInternalBuild = self.bundle.identifier.hasInternalBuildSuffix
     self.isTestFlightBuild = bundle.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
   }
 }

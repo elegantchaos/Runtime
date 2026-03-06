@@ -1,9 +1,10 @@
 import Foundation
 
-/// Application metadata captured from a bundle and process environment.
+/// Immutable snapshot of bundle metadata used by `Runtime`.
 ///
-/// `AppInfo` intentionally keeps values simple and immutable so callers can pass
-/// snapshots through app layers and tests without relying on global state.
+/// `BundleInfo` normalizes key values into strings so callers can consume
+/// metadata consistently across platforms and test fixtures, even when bundle
+/// values are absent.
 public struct BundleInfo: Sendable {
   /// A string-projected snapshot of the source bundle info dictionary.
   public let info: [String: String]
@@ -26,11 +27,11 @@ public struct BundleInfo: Sendable {
   /// Version formatted as `version (build)`.
   public let fullVersion: String
 
-  /// Creates app metadata for a specific bundle.
+  /// Creates bundle metadata for a specific bundle.
   /// - Parameters:
   ///   - bundle: Bundle to inspect.
   public init(bundle: Bundle = .main) {
-    let info = bundle.infoDictionary?.mapValues({ String(describing:$0) }) ?? [:]
+    let info = bundle.infoDictionary?.mapValues({ String(describing: $0) }) ?? [:]
 
     self.info = info
     self.identifier = bundle.bundleIdentifier ?? ""
@@ -39,8 +40,12 @@ public struct BundleInfo: Sendable {
     self.version = info[BundleKey.shortVersionString.rawValue] ?? ""
     let rawBuild = info[BundleKey.bundleVersion.rawValue] ?? info[BundleKey.build.rawValue] ?? "0"
     self.build = rawBuild == "BUILD" ? "xcode" : rawBuild
-    let isInternalBuild = identifier.hasSuffix(".internal")
-    self.fullVersion = Self.formatFullVersion(version: version, build: build, internalBuild: isInternalBuild)
+    self.fullVersion = Self
+      .formatFullVersion(
+        version: version,
+        build: build,
+        internalBuild: identifier.hasInternalBuildSuffix
+      )
   }
 
   /// Formats a full version string from core parts.
@@ -59,5 +64,12 @@ public extension Bundle {
   /// Runtime metadata for this bundle.
   var runtimeInfo: BundleInfo {
     BundleInfo(bundle: self)
+  }
+}
+
+extension String {
+  /// Is this string suffixed with our standard "internal build" marker?
+  var hasInternalBuildSuffix: Bool {
+    hasSuffix(".internal")
   }
 }

@@ -38,4 +38,7 @@ public enum EnvironmentKey: String, Sendable, Hashable {
 
   /// Whether a UI test target is active.
   case uiTesting = "UITesting"
+  
+  /// Standard variable for injecting a test model.
+  case testModel = "TEST_MODEL"
 }
