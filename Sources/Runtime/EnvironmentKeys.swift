@@ -8,37 +8,44 @@ import Foundation
 /// Canonical environment variable keys used by runtime helpers.
 ///
 /// Use standard cases for common variables.
-public enum EnvironmentKey: String, Sendable, Hashable {
+public struct EnvironmentKey: Sendable, RawRepresentable {
+  public let rawValue: String
+  
+  public init(_ string: String) {
+    self.init(rawValue: string)
+  }
+
+  public init(rawValue: String) {
+    self.rawValue = rawValue
+  }
+  
   /// Executable search path entries.
-  case path = "PATH"
+  static let path = EnvironmentKey("PATH")
 
   /// Current user's home directory path.
-  case home = "HOME"
+  static let home = EnvironmentKey("HOME")
 
   /// Login shell path.
-  case shell = "SHELL"
+  static let shell = EnvironmentKey("SHELL")
 
   /// Current user name.
-  case user = "USER"
+  static let user = EnvironmentKey("USER")
 
   /// Current working directory path.
-  case pwd = "PWD"
+  static let pwd = EnvironmentKey("PWD")
 
   /// Temporary directory path.
-  case tempDir = "TMPDIR"
+  static let tempDir = EnvironmentKey("TMPDIR")
 
   /// Locale language setting.
-  case lang = "LANG"
+  static let lang = EnvironmentKey("LANG")
 
   /// Preferred terminal type.
-  case term = "TERM"
+  static let term = EnvironmentKey("TERM")
 
   /// Whether Xcode is running SwiftUI previews.
-  case xcodeRunningForPreviews = "XCODE_RUNNING_FOR_PREVIEWS"
+  static let xcodeRunningForPreviews = EnvironmentKey("XCODE_RUNNING_FOR_PREVIEWS")
 
   /// Whether a UI test target is active.
-  case uiTesting = "UITesting"
-  
-  /// Standard variable for injecting a test model.
-  case testModel = "TEST_MODEL"
+  static let uiTesting = EnvironmentKey("UITesting")
 }

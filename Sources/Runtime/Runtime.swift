@@ -8,7 +8,6 @@ import Foundation
 ///
 /// `Runtime` captures values once at initialization time so downstream code can
 /// pass a stable value object instead of reading process globals repeatedly.
-@dynamicMemberLookup
 public struct Runtime: Sendable {
   /// Bundle metadata.
   public let bundle: BundleInfo
@@ -60,16 +59,6 @@ public struct Runtime: Sendable {
     !isDebugBuild && !isSimulatorBuild && !isTestFlightBuild
   }
 
-  /// Returns an environment variable by dynamic member name.
-  ///
-  /// This allows `runtime.PATH` style access as a shorthand for
-  /// `runtime.environment("PATH")`.
-  /// - Parameter member: Environment variable key.
-  /// - Returns: Variable value if present, otherwise `nil`.
-  public subscript(dynamicMember member: String) -> String? {
-    environment[member]
-  }
-
   /// Returns an environment variable value for a known key.
   /// - Parameter key: The environment key to look up.
   /// - Returns: Variable value if present, otherwise `nil`.
@@ -77,13 +66,26 @@ public struct Runtime: Sendable {
     environment[key.rawValue]
   }
 
-  /// Returns an environment variable value for an arbitrary key.
+  /// Returns an environment variable value for a known key,
+  /// normalized to lowercase. If the key is missing, we return
+  /// the empty string.
   /// - Parameter key: The environment key to look up.
-  /// - Returns: Variable value if present, otherwise `nil`.
-  public func environment(_ key: String) -> String? {
-    environment[key]
+  /// - Returns: Normalized value if present, otherwise empty string.
+  public func normalized(_ key: EnvironmentKey) -> String {
+    let raw = environment[key.rawValue] ?? ""
+    return raw.lowercased()
   }
 
+  /// Returns true if an environment variable value for a known key
+  /// contains a truthy value. Uses `NSString.boolValue`
+  /// to determine truthyness.
+  /// - Parameter key: The environment key to look up.
+  /// - Returns: Normalized value if present, otherwise empty string.
+  public func flag(_ key: EnvironmentKey) -> Bool {
+    guard let raw = environment[key.rawValue] as? NSString else { return false }
+    return raw.boolValue
+  }
+  
   /// Returns a bundle info value for a known key.
   /// - Parameter key: The bundle key to look up.
   /// - Returns: Bundle info value if present, otherwise `nil`.

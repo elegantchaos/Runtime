@@ -1,5 +1,6 @@
-import Testing
 import Foundation
+import Testing
+
 @testable import Runtime
 
 @Test("AppInfo formats full version")
@@ -11,8 +12,8 @@ func appInfoFullVersionFormatting() {
 @Test("Platform current returns a stable variant")
 func platformCurrentVariantIsKnown() {
   switch Platform.current {
-  case .macOS(.normal), .macOS(.catalyst), .iOS, .tvOS, .watchOS, .linux, .windows, .other:
-    #expect(Bool(true))
+    case .macOS(.normal), .macOS(.catalyst), .iOS, .tvOS, .watchOS, .linux, .windows, .other:
+      #expect(Bool(true))
   }
 }
 
@@ -55,20 +56,18 @@ func environmentKeyRawValues() {
   #expect(EnvironmentKey.term.rawValue == "TERM")
   #expect(EnvironmentKey.xcodeRunningForPreviews.rawValue == "XCODE_RUNNING_FOR_PREVIEWS")
   #expect(EnvironmentKey.uiTesting.rawValue == "UITesting")
-  #expect(EnvironmentKey.testModel.rawValue == "TEST_MODEL")
 }
 
 @Test("Runtime environment lookup parity for known keys")
-func runtimeEnvironmentLookupParity() {
+func runtimeEnvironmentNormalized() {
   let runtime = Runtime()
-  let keys: [EnvironmentKey] = [
-    .path, .home, .shell, .user, .pwd, .tempDir, .lang, .term,
-    .xcodeRunningForPreviews, .uiTesting, .testModel
-  ]
-
-  for key in keys {
-    #expect(runtime.environment(key) == runtime.environment(key.rawValue))
-  }
+  let home =
+    ProcessInfo.processInfo
+    .environment["HOME"]?
+    .lowercased()
+    ?? ""
+  #expect(runtime.normalized(.home) == home)
+  #expect(runtime.normalized(EnvironmentKey("NONEXISTANT")).isEmpty)
 }
 
 @Test("Bundle runtimeInfo extension matches direct initializer")
