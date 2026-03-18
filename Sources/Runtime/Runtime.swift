@@ -141,3 +141,8 @@ public struct Runtime: Sendable {
     self.isTestFlightBuild = bundle.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
   }
 }
+
+public extension Runtime {
+  /// Shared runtime snapshot for the current process, initialized on first access.
+  static let shared = Runtime()
+}
