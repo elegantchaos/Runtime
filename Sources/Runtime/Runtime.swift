@@ -14,7 +14,7 @@ public struct Runtime: Sendable {
 
   /// Process metadata used to populate environment and host fields.
   public let process: ProcessInfo
-  
+
   /// Host name reported by the process environment.
   public let hostName: String
 
@@ -27,7 +27,11 @@ public struct Runtime: Sendable {
   /// Platform metadata.
   public let platform: Platform
 
-  /// Optional installation/device identifier.
+  /// Optional device identifier.
+  /// This is assigned once, and stored in the defaults.
+  /// It may change if the user deletes their preferences or re-installs the app.
+  /// It is intended only as a way to track values that are likely to be from the same user/device
+  /// pair (eg for certain anonymous analytics), but it gives no strong guarantee of identity.
   public let deviceIdentifier: String?
 
   /// Whether this process is running in SwiftUI previews.
@@ -85,7 +89,7 @@ public struct Runtime: Sendable {
     guard let raw = environment[key.rawValue] as? NSString else { return false }
     return raw.boolValue
   }
-  
+
   /// Returns a bundle info value for a known key.
   /// - Parameter key: The bundle key to look up.
   /// - Returns: Bundle info value if present, otherwise `nil`.
@@ -107,21 +111,21 @@ public struct Runtime: Sendable {
   public init(bundle: Bundle = .main, processInfo: ProcessInfo = .processInfo) {
     self.bundle = BundleInfo(bundle: bundle)
     self.process = processInfo
-    self.hostName = processInfo.hostName
     self.environment = processInfo.environment
     self.platform = .current
+    self.deviceIdentifier = Self.resolveDeviceIdentifier()
 
-    #if canImport(UIKit)
-      let current = UIDevice.current
-      self.systemName = current.systemName
-      self.systemVersion = current.systemVersion
-      self.deviceIdentifier = current.identifierForVendor?.uuidString
+    #if os(iOS) || os(tvOS) || os(watchOS)
+      // On Apple mobile platforms we do not need a real host name to start the app,
+      // and querying one on first launch has proven suspicious enough to keep off
+      // the cold-start path.
+      self.hostName = bundle.bundleIdentifier ?? processInfo.processName
     #else
-      self.systemName = processInfo.operatingSystemVersionString
-      self.systemVersion = processInfo.operatingSystemVersionString
-      self.deviceIdentifier = nil
+      self.hostName = processInfo.hostName
     #endif
 
+    self.systemName = processInfo.operatingSystemVersionString
+    self.systemVersion = processInfo.operatingSystemVersionString
     self.isPreviewing = environment[EnvironmentKey.xcodeRunningForPreviews.rawValue] == "1"
     self.isUITestingBuild = environment[EnvironmentKey.uiTesting.rawValue] == "YES"
 
@@ -139,6 +143,20 @@ public struct Runtime: Sendable {
 
     self.isInternalBuild = self.bundle.identifier.hasInternalBuildSuffix
     self.isTestFlightBuild = bundle.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+  }
+
+  /// Defaults key used to persist the anonymous app-scoped device identifier.
+  static let anonymousDeviceIdentifierDefaultsKey = "AnonymousDeviceID"
+
+  /// Loads the anonymous device identifier from defaults, creating and persisting one if needed.
+  static func resolveDeviceIdentifier(defaults: UserDefaults = .standard) -> String? {
+    if let identifier = defaults.string(forKey: anonymousDeviceIdentifierDefaultsKey) {
+      return identifier
+    }
+
+    let identifier = UUID().uuidString
+    defaults.set(identifier, forKey: anonymousDeviceIdentifierDefaultsKey)
+    return identifier
   }
 }
 

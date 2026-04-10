@@ -33,6 +33,29 @@ func runtimeBundleInfoLookup() {
   #expect(runtime.info("NON_EXISTENT_RUNTIME_BUNDLE_KEY_12345") == nil)
 }
 
+@Test("Runtime device identifier persists once assigned")
+func runtimeDeviceIdentifierPersists() {
+  let defaults = UserDefaults.standard
+  let key = Runtime.anonymousDeviceIdentifierDefaultsKey
+  let previous = defaults.object(forKey: key)
+
+  defer {
+    if let previous {
+      defaults.set(previous, forKey: key)
+    } else {
+      defaults.removeObject(forKey: key)
+    }
+  }
+
+  defaults.removeObject(forKey: key)
+
+  let first = Runtime.resolveDeviceIdentifier(defaults: defaults)
+  let second = Runtime.resolveDeviceIdentifier(defaults: defaults)
+
+  #expect(first != nil)
+  #expect(first == second)
+}
+
 @Test("BundleKey raw values match CoreFoundation constants where available")
 func bundleKeyCoreFoundationConstantParity() {
   #expect(BundleKey.bundleName.rawValue == (kCFBundleNameKey as String))
